@@ -1,24 +1,17 @@
 import os
 import re
 import sys
-from yt_dlp import YoutubeDL
-import whisper
-from gtts import gTTS
-from pydub import AudioSegment
 import socket
 import requests
+import glo
+from yt_dlp import YoutubeDL
+# import whisper
+from gtts import gTTS
+# from pydub import AudioSegment
 from colorama import Fore, Style
-import traceback
-from translate import translate_vtt
-
-# Config
-youtube_link = "https://www.youtube.com/watch?v=ygZfNN1MSsU"
-central_lang = "en"
-to_lang = "vi"
-output_dir = "result"
-os.makedirs(output_dir, exist_ok=True)
-is_debugging = True
-job = ""
+from config import youtube_link, is_debugging, output_dir, to_lang, central_lang
+from translate import translate_srt
+from utils import print_error
 
 
 # Validate YouTube link format
@@ -60,13 +53,6 @@ def validate_youtube_url(url):
     return True
 
 
-def print_error(error):
-    print(Fore.RED + f"Fail while {job}" + Style.RESET_ALL)
-    if is_debugging:
-        print(Fore.RED + f"{error}" + Style.RESET_ALL)
-        traceback.print_exc()
-
-
 if validate_youtube_url(youtube_link):
     print(Fore.GREEN + "Link is good to go" + Style.RESET_ALL)
 else:
@@ -90,9 +76,7 @@ ydl_opts = {
     'no_warnings': not is_debugging,
     "cookies": "cookies.txt",
 }
-# target_sub_path = os.path.join(output_dir, f"{video_id}.{to_lang}.%(ext)s")
-# central_sub_path = os.path.join(output_dir, f"{video_id}.{central_lang}.%(ext)s")
-en_audio_path = os.path.join(output_dir, f"{video_id}.en.mp3")
+# en_audio_path = os.path.join(output_dir, f"{video_id}.en.mp3")
 required_translation = False
 
 with YoutubeDL(ydl_opts) as ydl:
@@ -111,6 +95,8 @@ def download(code, output_path, auto_sub=False):
         'quiet': True,
         'no_warnings': not is_debugging,
         "cookies": "cookies.txt",
+        "overwrites": False,
+        'subtitlesformat': 'srt/best'
     }
     with YoutubeDL(second_ydl_opts) as ydl2:
         ydl2.download([youtube_link])
@@ -118,7 +104,7 @@ def download(code, output_path, auto_sub=False):
 
 attempts = [
     (to_lang, False),  # Manual to_lang
-    (to_lang, True),  # Auto to_lang
+    # (to_lang, True),  # Auto to_lang
     (central_lang, False),  # Manual central_lang (en)
     (central_lang, True),  # Auto central_lang (en)
 ]
@@ -129,8 +115,8 @@ for lang_code, auto in attempts:
     path = os.path.join(output_dir, f"{video_id}.%(ext)s")
     available = auto_subs if auto else subtitles
     if lang_code in available:
-        job = f"Downloading {'auto-generated' if auto else 'manual'} subtitle in {lang_code}"
-        print(Fore.GREEN + job + Style.RESET_ALL)
+        glo.job = f"Downloading {'auto-generated' if auto else 'manual'} subtitle in {lang_code}"
+        print(Fore.GREEN + glo.job + Style.RESET_ALL)
         try:
             download(lang_code, path, auto)
             if lang_code == central_lang and lang_code != to_lang:
@@ -171,74 +157,12 @@ for lang_code, auto in attempts:
 if not success:
     sys.exit("No subtitles or transcription available.")
 
-    # try:
-    #     job = ""
-    #
-    #
-    #
-    #     # Try downloading manual sub in to_lang
-    #     if to_lang in subtitles:
-    #         job = f"Downloading manual subtitle in {to_lang}"
-    #         print(Fore.GREEN + job + Style.RESET_ALL)
-    #         download(to_lang, target_sub_path)
-    #
-    #     # Try downloading auto-generated sub in to_lang
-    #     elif to_lang in auto_subs:
-    #         job = f"Downloading auto-generated subtitle in {to_lang}"
-    #         print(Fore.GREEN + job + Style.RESET_ALL)
-    #         download(to_lang, target_sub_path, auto=True)
-    #
-    #     # Try downloading manual sub in central_lang (en)
-    #     elif central_lang in subtitles:
-    #         job = f"Downloading manual subtitle in {central_lang}"
-    #         print(Fore.GREEN + job + Style.RESET_ALL)
-    #         download(central_lang, central_sub_path)
-    #         required_translation = True
-    #
-    #     # Try downloading auto-generated sub in central_lang (en)
-    #     elif central_lang in auto_subs:
-    #         job = f"Downloading auto-generated subtitle in {central_lang}"
-    #         print(Fore.GREEN + job + Style.RESET_ALL)
-    #         download(central_lang, central_sub_path, auto=True)
-    #         required_translation = True
-    #
-    #     # No subs – download and transcribe audio
-    #     else:
-    #         job = f"Downloading audio ..."
-    #         print(Fore.GREEN + job + Style.RESET_ALL)
-    #         print(Fore.YELLOW + "WARNING: if the video is not in English, this will NOT work" + Style.RESET_ALL)
-    #         audio_ydl_opts = ({
-    #             'format': 'bestaudio/best',
-    #             'outtmpl': en_audio_path,
-    #             'postprocessors': [{
-    #                 'key': 'FFmpegExtractAudio',
-    #                 'preferredcodec': 'mp3',
-    #                 'preferredquality': '192',
-    #             }]
-    #         })
-    #         with YoutubeDL(audio_ydl_opts) as audio_ydl:
-    #             audio_ydl.download([youtube_link])
-    #
-    #         # Transcribing with Whisper
-    #         model = whisper.load_model("base")
-    #         result = model.transcribe(en_audio_path, language="en")
-    #         transcript_text = result['text']
-    #         with open(central_sub_path, 'w', encoding='utf-8') as f:
-    #             f.write(transcript_text)
-    #         required_translation = True
-    # except Exception as e:
-    #     print(Fore.RED + f"Fail while {job}" + Style.RESET_ALL)
-    #     if is_debugging:
-    #         print(Fore.RED + f"{e}" + Style.RESET_ALL)
-    #         traceback.print_exc()
-    #     sys.exit()
-
 # Translate file if needed
-untranslated = os.path.join(output_dir, f"{video_id}.{central_lang}.vtt")
-translated = os.path.join(output_dir, f"{video_id}.{to_lang}.vtt")
-
-# if required_translation:
-    # translate_vtt(untranslated, translated, to_lang, is_debugging)
+if required_translation:
+    untranslated = os.path.join(output_dir, f"{video_id}.{central_lang}.srt")
+    translated = os.path.join(output_dir, f"{video_id}.{to_lang}.srt")
+    if not os.path.exists(translated):
+        translate_srt(untranslated, translated)
 
 # Convert to audio using gTTS
 # print("Converting to audio...")

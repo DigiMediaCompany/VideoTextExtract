@@ -1,4 +1,4 @@
-openai
+openai==0.28
 tiktoken
 python-dotenv
 deep_translator
@@ -8,3 +8,4 @@ gTTS~=2.5.4
 pydub~=0.25.1
 colorama~=0.4.6
 yt_dlp
+requests
