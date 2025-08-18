@@ -1,82 +1,63 @@
+import os
 import re
 import time
+from pathlib import Path
 
 import openai
 
-from config import to_lang
+from config import to_lang, OPEN_AI_CHARACTER_LIMIT, output_dir, central_lang
+from glo import openai_client, video_id
 
-openai.api_key = ""
 
 def read_srt(file_path):
-    """Reads the srt file and returns list of entries (num, time, text)."""
-    with open(file_path, "r", encoding="utf-8") as f:
-        content = f.read()
+    text = Path(file_path).read_text(encoding="utf-8")
 
-    pattern = re.compile(r"(\d+)\s+([\d:,]+ --> [\d:,]+)\s+(.+?)(?=\n\d+\n|\Z)", re.S)
-    entries = []
-    for match in pattern.finditer(content):
-        num = int(match.group(1))
-        time_range = match.group(2).strip()
-        text = match.group(3).replace("\n", " ").strip()
-        entries.append((num, time_range, text))
-    return entries
+    text = re.sub(r"\d{2}:\d{2}:\d{2},\d{3} --> \d{2}:\d{2}:\d{2},\d{3}", "", text)
+    text = re.sub(r"^\d+\s*$", "", text, flags=re.MULTILINE)
+    text = re.sub(r"\n+", "\n", text)
 
+    return text.strip()
 
-def chunk_entries(entries, min_lines=20):
-    """Groups entries into chunks of >=20 lines, ending at a '.' if possible."""
-    chunks, current, current_idx = [], [], []
-    for idx, (num, time_range, text) in enumerate(entries):
-        current.append(text)
-        current_idx.append((num, time_range))
-        # if we've got enough lines and the text ends with ".", close the chunk
-        if len(current) >= min_lines and text.endswith("."):
-            chunks.append((" ".join(current), current_idx))
-            current, current_idx = [], []
-    if current:  # leftover
-        chunks.append((" ".join(current), current_idx))
+def chunk_text(text, max_chars=OPEN_AI_CHARACTER_LIMIT):
+    sentences = re.split(r'(?<=[.!?])\s+', text)
+    chunks, current = [], ""
+
+    for sentence in sentences:
+        if len(current) + len(sentence) + 1 <= max_chars:
+            current += " " + sentence
+        else:
+            chunks.append(current.strip())
+            current = sentence
+    if current:
+        chunks.append(current.strip())
+
     return chunks
 
-
-def translate_text(text, target_lang="vi"):
-    """Send text to GPT for translation."""
-    response = openai.ChatCompletion.create(
-        model="gpt-4o-mini",  # you can change to gpt-4o or gpt-3.5-turbo
+def translate_chunk(chunk):
+    response = openai_client.chat.completions.create(
+        model="gpt-4o-mini",
         messages=[
-            {"role": "system", "content": f"Translate the following into {target_lang}. Keep meaning, natural style."},
-            {"role": "user", "content": text}
-        ],
-        temperature=0.3
+            {"role": "system", "content": f"You are a professional translator. Translate into {to_lang}."},
+            {"role": "user", "content": chunk}
+        ]
     )
-    return response.choices[0].message["content"].strip()
+    return response.choices[0].message.content.strip()
 
+def translate_srt():
+    input_file = os.path.join(output_dir, video_id, f"sub.{central_lang}.srt")
+    output_file = os.path.join(output_dir, video_id, f"sub.{to_lang}.srt")
 
-def rebuild_srt(chunks, translations, output_file):
-    """Reconstruct srt with translated text mapped to original times."""
-    with open(output_file, "w", encoding="utf-8") as f:
-        for chunk, trans in zip(chunks, translations):
-            original_texts, idx_times = chunk
-            # Split translation into roughly same number of lines
-            trans_lines = trans.split(". ")
-            if len(trans_lines) < len(idx_times):
-                # pad if fewer sentences than entries
-                trans_lines += [""] * (len(idx_times) - len(trans_lines))
+    if not os.path.exists(output_file):
+        text = read_srt(input_file)
+        chunks = chunk_text(text)
 
-            for (num, time_range), line in zip(idx_times, trans_lines):
-                f.write(f"{num}\n{time_range}\n{line.strip()}\n\n")
+        translations = []
+        for i, chunk in enumerate(chunks, 1):
+            print(f"  Translating chunk {i}/{len(chunks)}...")
+            translated = translate_chunk(chunk)
+            translations.append(translated)
 
+        final_text = "\n\n".join(translations)
+        Path(output_file).write_text(final_text, encoding="utf-8")
 
-def translate_srt(input_file, output_file):
-
-    entries = read_srt(input_file)
-    chunks = chunk_entries(entries)
-
-    translations = []
-    for text, idx_times in chunks:
-        print(f"Translating chunk ({len(idx_times)} lines)...")
-        trans = translate_text(text, target_lang=to_lang)  # example: Vietnamese
-        translations.append(trans)
-        time.sleep(20)
-
-    rebuild_srt(chunks, translations, output_file)
-    print("✅ Translation completed:", output_file)
-
+        print(f"✅ Done! Translation saved to {output_file}")
