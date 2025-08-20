@@ -9,7 +9,6 @@ This together with auto videos from [TODO](https://github.com/username/awesome-t
 and [TODO](https://github.com/username/awesome-tool) (Roblox video generator) allows you to build/test mass amount
 of channels/ideas
 
----
 
 ## 🚀 Features
 - Download Youtube subtitle in the following priority
@@ -21,7 +20,6 @@ of channels/ideas
 - Translate the file via GPT if the subtitle file is not in desired language
 - Subtitle to audio
 
----
 
 ## 📦 Installation
 
@@ -29,7 +27,7 @@ of channels/ideas
 Export the Youtube cookie, rename to "cookies.txt" and place it in the root folder. 
 Skipping this step may get you 429 error. Note that cookie constantly needs to be updated
 - Setup desired/central language and target Youtube video
-- TODO: GPT setup here
+- Setup .env
 - Run
 ```bash
 pip install -r requirements.txt

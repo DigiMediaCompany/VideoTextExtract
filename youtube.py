@@ -12,33 +12,30 @@ from utils import print_error
 
 base_opts = {
     'skip_download': True,
-    'quiet': True,
-    'no_warnings': not is_debugging,
+    # 'quiet': True,
+    # 'no_warnings': True,
     "cookies": cookie_file,
     "overwrites": False,
 }
 
 
 def check_url_reachable(url):
-    try:
-        headers = {'User-Agent': 'Mozilla/5.0'}
-        response = requests.get(url, headers=headers, timeout=10)
-        return response.status_code == 200
-    except requests.RequestException:
-        return False
+    glo.job = "Checking URL reachability"
+    headers = {'User-Agent': 'Mozilla/5.0'}
+    response = requests.get(url, headers=headers, timeout=10)
+    return response.status_code == 200
 
 
 def is_valid_youtube_url_format(url):
+    glo.job = "Checking URL format"
     pattern = r'(https?://)?(www\.)?(youtube\.com|youtu\.be)/.+'
     return re.match(pattern, url) is not None
 
 
 def check_internet_connection():
-    try:
-        socket.create_connection(("8.8.8.8", 53), timeout=5)
-        return True
-    except OSError:
-        return False
+    glo.job = "Checking internet connection"
+    socket.create_connection(("8.8.8.8", 53), timeout=5)
+    return True
 
 
 def validate_youtube_url():
@@ -84,7 +81,6 @@ def download_subtitle():
         raise Exception("Bad YouTube URL")
 
     required_translation = False
-
     glo.video_id = extract_video_id()
     ydl_opts = {
         **base_opts,
@@ -97,28 +93,35 @@ def download_subtitle():
         subtitles = info.get('subtitles', {})
         auto_subs = info.get('automatic_captions', {})
 
-    # attempts = [
-    #     (to_lang, False),  # Manual to_lang
-    #     # (to_lang, True),  # Auto to_lang (fuck auto translate is sooo bad)
-    #     (central_lang, False),  # Manual central_lang (en)
-    #     (central_lang, True),  # Auto central_lang (en)
-    # ]
-    #
-    # success = False
-    # for lang_code, auto in attempts:
-    #     path = os.path.join(output_dir, glo.video_id, f"sub.%(ext)s")
-    #     available = auto_subs if auto else subtitles
-    #     if lang_code in available:
-    #         glo.job = f"Downloading {'auto-generated' if auto else 'manual'} subtitle in {lang_code}"
-    #         try:
-    #             download(lang_code, path, auto)
-    #             if lang_code == central_lang and lang_code != to_lang:
-    #                 required_translation = True
-    #             success = True
-    #             break
-    #         except Exception as e:
-    #             print_error(e)
-    #             continue
+    attempts = [
+        (to_lang, False),  # Manual to_lang
+        # (to_lang, True),  # Auto to_lang (fuck auto translate is sooo bad)
+        (central_lang, False),  # Manual central_lang (en)
+        (central_lang, True),  # Auto central_lang (en)
+    ]
+
+    success = False
+    for lang_code, auto in attempts:
+        glo.job = f"Downloading {'auto-generated' if auto else 'manual'} subtitle in {lang_code}"
+        path = os.path.join(output_dir, glo.video_id, f"sub.{lang_code}.srt")
+        downloaded = False
+        if os.path.exists(path):
+            downloaded = True
+        else:
+            available = auto_subs if auto else subtitles
+            if lang_code in available:
+                try:
+                    download(lang_code, path, auto)
+                    downloaded = True
+                except Exception as e:
+                    print_error(e)
+                    continue
+        if downloaded:
+            if lang_code == central_lang and lang_code != to_lang:
+                required_translation = True
+            success = True
+            break
+    return required_translation
 
     # if not success:
     #     glo.job = "Downloading audio for transcription"
@@ -142,4 +145,3 @@ def download_subtitle():
         # with open(central_sub_path, 'w', encoding='utf-8') as f:
         #     f.write(result['text'])
 
-    return required_translation
