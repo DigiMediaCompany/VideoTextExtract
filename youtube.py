@@ -54,7 +54,7 @@ def validate_youtube_url():
 def extract_video_id():
     pattern = r"(?:v=|\/)([0-9A-Za-z_-]{11}).*"
     match = re.search(pattern, youtube_link)
-    if match:
+    if match and match.group(1):
         return match.group(1)
     else:
         raise Exception("Cannot extract video id")

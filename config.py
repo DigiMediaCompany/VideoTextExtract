@@ -8,7 +8,7 @@ OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 OPEN_AI_CHARACTER_LIMIT = 2000
 rest_time = 5
 # Youtube
-youtube_link = "https://www.youtube.com/watch?v=eSjbvFBs5Ak&t=47s"
+youtube_link = "https://www.youtube.com/watch?v=md3HfH0SWOI"
 central_lang = "en"
 to_lang = "vi"
 cookie_file = "cookies.txt"

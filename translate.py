@@ -20,6 +20,7 @@ def read_srt(file_path):
 
     return text.strip()
 
+
 def chunk_text(text, max_chars=OPEN_AI_CHARACTER_LIMIT):
     glo.job = "Chunking texts"
     sentences = re.split(r'(?<=[.!?])\s+', text)
@@ -35,6 +36,7 @@ def chunk_text(text, max_chars=OPEN_AI_CHARACTER_LIMIT):
         chunks.append(current.strip())
 
     return chunks
+
 
 def translate_chunk(chunk):
     glo.job = "Translating via GPT"
@@ -59,11 +61,11 @@ Rules:
     )
     return response.choices[0].message.content.strip()
 
+
 def translate_srt():
     input_file = os.path.join(output_dir, glo.video_id, f"sub.{central_lang}.srt")
     output_file = os.path.join(output_dir, glo.video_id, f"script.{to_lang}.txt")
-
-    if not os.path.exists(output_file):
+    if not os.path.exists(output_file) and os.path.exists(input_file):
         text = read_srt(input_file)
         chunks = chunk_text(text)
 
@@ -78,4 +80,15 @@ def translate_srt():
         final_text = " ".join(translations)
         final_text = re.sub(r"\s+", " ", final_text).strip()
         Path(output_file).write_text(final_text, encoding="utf-8")
+
+
+def srt_to_txt():
+    input_file = os.path.join(output_dir, glo.video_id, f"sub.{central_lang}.srt")
+    output_file = os.path.join(output_dir, glo.video_id, f"script.{to_lang}.txt")
+    if not os.path.exists(output_file) and os.path.exists(input_file):
+        text = read_srt(input_file)
+
+        with open(output_file, "w", encoding="utf-8") as f:
+            f.write(text)
+
 
