@@ -10,3 +10,5 @@ colorama~=0.4.6
 yt_dlp
 yt-dlp[websockets]
 requests
+moviepy
+pysrt

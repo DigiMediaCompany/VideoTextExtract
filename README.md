@@ -26,6 +26,7 @@ of channels/ideas
 - Install [Get cookies.txt (Chrome Extension)](https://chrome.google.com/webstore/detail/get-cookiestxt-locally/cclelndahbckbenkjhflpdbgdldlbecc) (or any safe cookie export tool). 
 Export the Youtube cookie, rename to "cookies.txt" and place it in the root folder. 
 Skipping this step may get you 429 error. Note that cookie constantly needs to be updated
+- Install [FFmpeg](https://ffmpeg.org/)
 - Setup desired/central language and target Youtube video
 - Setup .env
 - Run

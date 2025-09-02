@@ -6,14 +6,26 @@ load_dotenv()
 # OpenAI
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 OPEN_AI_CHARACTER_LIMIT = 2000
-rest_time = 5
+rest_time = 1
 # Youtube
-youtube_link = "https://www.youtube.com/watch?v=md3HfH0SWOI"
+youtube_link = "https://www.youtube.com/watch?v=V_aD_Sa2Gzc"
 central_lang = "en"
 to_lang = "vi"
 cookie_file = "cookies.txt"
 # Common
 output_dir = "result"
+video_src_dir = "video"
 os.makedirs(output_dir, exist_ok=True)
 is_debugging = True
-
+SUBTITLE_FORMAT = "srt"
+VIDEO_FORMAT = "mp4"
+AUDIO_FORMAT = "mp3"
+sub_file_name = "sub"
+audio_file_name = "audio"
+script_file_name = "script"
+asset_dir = "asset"
+font_dir = "font"
+# Final output format
+VIDEO_CODEC = "libx264"
+AUDIO_CODEC = "aac"
+final_file_name = "final"

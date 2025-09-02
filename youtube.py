@@ -111,7 +111,8 @@ def download_subtitle():
             available = auto_subs if auto else subtitles
             if lang_code in available:
                 try:
-                    download(lang_code, path, auto)
+                    yt_dlp_path = os.path.join(output_dir, glo.video_id, "sub")
+                    download(lang_code, yt_dlp_path, auto)
                     downloaded = True
                 except Exception as e:
                     print_error(e)
