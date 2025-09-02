@@ -1,7 +1,6 @@
 import os
 import re
 
-import pysrt
 
 from moviepy import VideoFileClip, AudioFileClip, CompositeVideoClip, TextClip
 from moviepy.video.tools.subtitles import SubtitlesClip

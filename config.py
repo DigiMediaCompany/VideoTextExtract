@@ -1,6 +1,7 @@
 from dotenv import load_dotenv
 import os
 
+
 load_dotenv()
 
 # OpenAI
@@ -25,7 +26,16 @@ audio_file_name = "audio"
 script_file_name = "script"
 asset_dir = "asset"
 font_dir = "font"
+temp_file = "temp.txt"
 # Final output format
 VIDEO_CODEC = "libx264"
 AUDIO_CODEC = "aac"
 final_file_name = "final"
+# Cloudflare
+D1_URL = f"{os.getenv('D1_URL')}/article"
+headers = {
+    "Authorization": f"Bearer {os.getenv('D1_API_TOKEN')}",
+    "Content-Type": "application/json"
+}
+job_id_key = "CURRENT_JOB_ID"
+section_key = "Cloudflare"
