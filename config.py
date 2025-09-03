@@ -9,7 +9,6 @@ OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 OPEN_AI_CHARACTER_LIMIT = 2000
 rest_time = 1
 # Youtube
-youtube_link = "https://www.youtube.com/watch?v=V_aD_Sa2Gzc"
 central_lang = "en"
 to_lang = "vi"
 cookie_file = "cookies.txt"
@@ -26,7 +25,7 @@ audio_file_name = "audio"
 script_file_name = "script"
 asset_dir = "asset"
 font_dir = "font"
-temp_file = "temp.txt"
+temp_file = "temp.ini"
 # Final output format
 VIDEO_CODEC = "libx264"
 AUDIO_CODEC = "aac"
@@ -39,3 +38,4 @@ headers = {
 }
 job_id_key = "CURRENT_JOB_ID"
 section_key = "Cloudflare"
+check_jobs_interval = 120

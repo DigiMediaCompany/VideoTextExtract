@@ -9,4 +9,4 @@ config.read(temp_file)
 job = ""
 openai_client = OpenAI(api_key=OPENAI_API_KEY)
 video_id = None
-
+youtube_link = None

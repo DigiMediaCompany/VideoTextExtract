@@ -6,7 +6,7 @@ from colorama import Fore, Style
 from yt_dlp import YoutubeDL
 
 import glo
-from config import youtube_link, is_debugging, to_lang, central_lang, output_dir, cookie_file
+from config import is_debugging, to_lang, central_lang, output_dir, cookie_file
 from utils import print_error
 
 
@@ -39,13 +39,13 @@ def check_internet_connection():
 
 
 def validate_youtube_url():
-    if not is_valid_youtube_url_format(youtube_link):
+    if not is_valid_youtube_url_format(glo.youtube_link):
         print(Fore.RED + "Invalid YouTube URL format" + Style.RESET_ALL)
         return False
     if not check_internet_connection():
         print(Fore.RED + "No internet connection" + Style.RESET_ALL)
         return False
-    if not check_url_reachable(youtube_link):
+    if not check_url_reachable(glo.youtube_link):
         print(Fore.RED + "YouTube link is either not reachable, private or doesn't exist" + Style.RESET_ALL)
         return False
     return True
@@ -53,7 +53,7 @@ def validate_youtube_url():
 
 def extract_video_id():
     pattern = r"(?:v=|\/)([0-9A-Za-z_-]{11}).*"
-    match = re.search(pattern, youtube_link)
+    match = re.search(pattern, glo.youtube_link)
     if match and match.group(1):
         return match.group(1)
     else:
@@ -71,7 +71,7 @@ def download(code, output_path, auto_sub=False):
         'subtitlesformat': 'srt/best'
     }
     with YoutubeDL(second_ydl_opts) as ydl2:
-        ydl2.download([youtube_link])
+        ydl2.download([glo.youtube_link])
 
 
 def download_subtitle():
@@ -89,7 +89,7 @@ def download_subtitle():
     }
 
     with YoutubeDL(ydl_opts) as ydl:
-        info = ydl.extract_info(youtube_link, download=False)
+        info = ydl.extract_info(glo.youtube_link, download=False)
         subtitles = info.get('subtitles', {})
         auto_subs = info.get('automatic_captions', {})
 
@@ -138,7 +138,7 @@ def download_subtitle():
         #     }]
         # }
         # with YoutubeDL(audio_ydl_opts) as audio_ydl:
-        #     audio_ydl.download([youtube_link])
+        #     audio_ydl.download([glo.youtube_link])
         #
         # # Transcribe
         # model = whisper.load_model("base")

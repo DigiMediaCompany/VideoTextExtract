@@ -3,7 +3,7 @@ import sys
 from gtts import gTTS
 from colorama import Fore, Style
 
-from api import find_next_unprocessed_job
+from api import process_jobs
 from translate import translate_srt, srt_to_txt
 from tts import text_to_speech
 from utils import print_error
@@ -23,8 +23,7 @@ def main():
         # combine_video()
         # print(Fore.GREEN + "✅Done" + Style.RESET_ALL)
 
-        # Bot flow TODO fix this later
-        find_next_unprocessed_job()
+        process_jobs()
     except Exception as e:
         print_error(e)
         sys.exit()
