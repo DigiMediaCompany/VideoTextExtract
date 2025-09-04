@@ -12,4 +12,8 @@ yt-dlp[websockets]
 requests
 moviepy
 pysrt
+selenium
+undetected-chromedriver
+seleniumbase
+pytest
 configparser

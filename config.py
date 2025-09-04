@@ -1,13 +1,13 @@
 from dotenv import load_dotenv
 import os
 
-
 load_dotenv()
 
 # OpenAI
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 OPEN_AI_CHARACTER_LIMIT = 2000
-rest_time = 1
+rest_time = 10
+chrome_dir = r"\asset\chrome"
 # Youtube
 central_lang = "en"
 to_lang = "en"

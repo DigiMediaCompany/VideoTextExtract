@@ -1,0 +1,63 @@
+- resources
+https://github.com/TheGP/untidetect-tools
+https://github.com/christian-bromann/awesome-selenium
+
+
+- bot detection tests
+https://www.browserscan.net/
+https://deviceandbrowserinfo.com/are_you_a_bot
+https://bot-detector.rebrowser.net/
+https://fingerprint.com/products/bot-detection/
+
+
+https://bot.incolumitas.com/#botBehavior
+✅ Cloudflare Web Application Firewall (WAF)
+✅ BrowserScan Bot Detection
+✅ Cloudflare Turnstile CAPTCHA
+
+- proxy detection tests
+https://deviceandbrowserinfo.com/are_you_a_bot
+
+- context extract tools
+NotebookLM
+Anthropic
+ChatGPT / Claude / Perplexity
+SMMRY → Gives a shortened version, but more “summary” than structured points.
+TLDR This → Similar, creates a quick digest of long text.
+Scholarcy → Works best with reports or academic writing, extracts key points, entities, and highlights.
+Explainpaper → Upload a document and highlight difficult sections to get context.
+QuillBot Summarizer → Breaks text into key sentences or bullet points.
+
+Evernote – Note-taking with web clipper, good for extracting key highlights.
+Notion AI – Summarize notes and generate key takeaways inside Notion.
+OneNote (Microsoft) – With Copilot AI, can auto-summarize notes.
+Obsidian (with plugins) – Can run text-mining/summarization plugins.
+Roam Research – Extracts linked references, good for character/event mapping.
+LitCharts – Summaries, character breakdowns, and analysis for literature.
+SparkNotes – Classic site for characters, themes, and event summaries.
+BookRags – Study guides, detailed summaries, character lists.
+Shmoop – Casual summaries, character maps, story breakdowns.
+CliffsNotes – Short summaries and analysis (main points, characters, events).
+
+research
+- github browse
+	+ scrapy? Scrapy Rotating Proxies?
+	+ https://github.com/topics/bot-detection
+	+ https://github.com/niespodd/browser-fingerprinting (for agent)
+	+ honorable mention replacement for SeleniumBase
+		. botasaurus
+		. BotBrowser
+	+ https://github.com/Ge0rg3/requests-ip-rotator
+	+ SeleniumHQ/docker-selenium
+	+ https://github.com/mubeng/mubeng
+- DataDome's Guide to Bot Detection
+- OpenAppSec's Overview of Bot Detection Tools
+- Rebrowser Bot Detector GitHub Repository
+- ZenRows Blog on Bypassing Bot Detection
+- CDP (Chrome Devtools Protocol)
+- Service
+    + ScraperAPI / Zyte
+    + cracked proxy pools
+
+threading options
+-

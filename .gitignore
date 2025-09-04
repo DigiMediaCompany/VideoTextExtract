@@ -210,4 +210,9 @@ __marimo__/
 cookies.txt
 .idea/
 *.pyc
+
+KEY
+KEY.pub
+key
+key.pub
 temp.ini

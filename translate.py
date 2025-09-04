@@ -3,10 +3,9 @@ import re
 import time
 from pathlib import Path
 
-import openai
-
 from config import to_lang, OPEN_AI_CHARACTER_LIMIT, output_dir, central_lang, rest_time
 import glo
+from gpt import gpt_translate
 
 
 def read_srt(file_path):
@@ -16,7 +15,7 @@ def read_srt(file_path):
     text = re.sub(r"\d{2}:\d{2}:\d{2},\d{3} --> \d{2}:\d{2}:\d{2},\d{3}", "", text)
     text = re.sub(r"^\d+\s*$", "", text, flags=re.MULTILINE)
     text = re.sub(r"\n+", "\n", text)
-    text = re.sub(r"\[.*?\]", "", text)
+    text = re.sub(r"\[.*?]", "", text)
 
     return text.strip()
 
@@ -62,17 +61,27 @@ Rules:
     return response.choices[0].message.content.strip()
 
 
-def translate_srt():
+def translate_srt(use_api=False):
+    if use_api:
+        translate_srt_via_api()
+    else:
+        gpt_translate()
+
+
+def translate_srt_via_api(sb=None):
     input_file = os.path.join(output_dir, glo.video_id, f"sub.{central_lang}.srt")
-    output_file = os.path.join(output_dir, glo.video_id, f"script.{to_lang}.txt")
+    output_file: str = os.path.join(output_dir, glo.video_id, f"script.{to_lang}.txt")
     if not os.path.exists(output_file) and os.path.exists(input_file):
         text = read_srt(input_file)
         chunks = chunk_text(text)
 
         translations = []
         for i, chunk in enumerate(chunks, 1):
-            print(f"  Translating chunk {i}/{len(chunks)}...")
-            translated = translate_chunk(chunk)
+            print(f"Translating chunk {i}/{len(chunks)}...")
+            if sb:
+                translated
+            else:
+                translated = translate_chunk(chunk)
             translated = translated.replace('"', '')
             translations.append(translated)
             time.sleep(rest_time)
@@ -90,5 +99,3 @@ def srt_to_txt():
 
         with open(output_file, "w", encoding="utf-8") as f:
             f.write(text)
-
-

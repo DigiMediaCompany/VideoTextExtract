@@ -38,3 +38,4 @@ py main.py
 ## Todo
 
 - Auto-fetching cookies
+- More options for bot detection
