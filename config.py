@@ -38,4 +38,4 @@ headers = {
 }
 job_id_key = "CURRENT_JOB_ID"
 section_key = "Cloudflare"
-check_jobs_interval = 120
+check_jobs_interval = 60
