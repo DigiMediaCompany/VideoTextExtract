@@ -10,7 +10,7 @@ OPEN_AI_CHARACTER_LIMIT = 2000
 rest_time = 1
 # Youtube
 central_lang = "en"
-to_lang = "vi"
+to_lang = "en"
 cookie_file = "cookies.txt"
 # Common
 output_dir = "result"

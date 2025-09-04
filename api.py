@@ -44,12 +44,8 @@ def handle_status_1(progress_item):
 
 def handle_status_2(progress_item):
     try:
-        # required_translation = download_subtitle()
-        # if required_translation:
-        #     translate_srt()
-        # else:
-        #     srt_to_txt()
-        # upload_file()
+        download_subtitle()
+        upload_file()
         return True
     except:
         return False
@@ -158,14 +154,12 @@ def process_jobs():
         if resp.status_code != 200:
             print(f"Job {job_id} not found or error: {resp.status_code}")
             sleep(check_jobs_interval)
-            job_id = glo.config.getint("job", job_id_key, fallback=1)
             continue
 
         job_data = resp.json()
 
         if not is_processed(job_data):
             handle_progress_in_job(job_data)
-        else:
             config = configparser.ConfigParser()
             config[section_key] = {job_id_key: str(job_id)}
             with open(temp_file, "w") as f:

@@ -15,7 +15,9 @@ base_opts = {
     # 'quiet': True,
     # 'no_warnings': True,
     "cookies": cookie_file,
-    "overwrites": False,
+    # "format": "none",
+    # "simulate": True,
+    # "subtitleslangs": ["en"],
 }
 
 
@@ -68,7 +70,8 @@ def download(code, output_path, auto_sub=False):
         'writeautomaticsub': auto_sub,
         'subtitleslangs': [code],
         'outtmpl': output_path,
-        'subtitlesformat': 'srt/best'
+        'subtitlesformat': 'srt/best',
+        "overwrites": False,
     }
     with YoutubeDL(second_ydl_opts) as ydl2:
         ydl2.download([glo.youtube_link])
