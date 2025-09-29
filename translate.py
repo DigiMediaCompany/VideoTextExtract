@@ -65,10 +65,12 @@ def translate_srt(use_api=False):
     if use_api:
         translate_srt_via_api()
     else:
-        gpt_translate()
+        # TODO
+        pass
+        # gpt_translate()
 
 
-def translate_srt_via_api(sb=None):
+def translate_srt_via_api():
     input_file = os.path.join(output_dir, glo.video_id, f"sub.{central_lang}.srt")
     output_file: str = os.path.join(output_dir, glo.video_id, f"script.{to_lang}.txt")
     if not os.path.exists(output_file) and os.path.exists(input_file):
@@ -78,10 +80,7 @@ def translate_srt_via_api(sb=None):
         translations = []
         for i, chunk in enumerate(chunks, 1):
             print(f"Translating chunk {i}/{len(chunks)}...")
-            if sb:
-                translated
-            else:
-                translated = translate_chunk(chunk)
+            translated = translate_chunk(chunk)
             translated = translated.replace('"', '')
             translations.append(translated)
             time.sleep(rest_time)

@@ -32,6 +32,7 @@ AUDIO_CODEC = "aac"
 final_file_name = "final"
 # Cloudflare
 D1_URL = f"{os.getenv('D1_URL')}/article"
+R2_URL = f"{os.getenv('R2_URL')}/files"
 headers = {
     "Authorization": f"Bearer {os.getenv('D1_API_TOKEN')}",
     "Content-Type": "application/json"

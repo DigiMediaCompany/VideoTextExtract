@@ -17,3 +17,5 @@ undetected-chromedriver
 seleniumbase
 pytest
 configparser
+beautifulsoup4
+pyperclip

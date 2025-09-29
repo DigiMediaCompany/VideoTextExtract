@@ -1,6 +1,8 @@
 import os
 import re
 import socket
+from datetime import datetime
+
 import requests
 from colorama import Fore, Style
 from yt_dlp import YoutubeDL
@@ -149,3 +151,20 @@ def download_subtitle():
         # with open(central_sub_path, 'w', encoding='utf-8') as f:
         #     f.write(result['text'])
 
+
+def get_info():
+    default_date = datetime.today().strftime("%Y%m%d")
+    try:
+        with YoutubeDL({'quiet': True}) as ydl:
+            info = ydl.extract_info(glo.video_id, download=False)
+            if not info:
+                return None
+            return {
+                "title": info.get("title", ""),
+                "upload_date": info.get("upload_date", default_date)
+            }
+    except:
+        return {
+            "title": "",
+            "upload_date": default_date
+        }
