@@ -78,7 +78,7 @@ def combine_video():
         video_with_subs = CompositeVideoClip([
             *subtitle_clips,
             video,
-            # subtitles.set_pos(("center", "bottom"))
+            subtitles.set_pos(("center", "bottom"))
         ])
 
         final = video_with_subs.with_audio(audio)

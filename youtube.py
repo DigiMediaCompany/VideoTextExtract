@@ -6,11 +6,11 @@ from datetime import datetime
 import requests
 from colorama import Fore, Style
 from yt_dlp import YoutubeDL
-
 import glo
 from config import is_debugging, to_lang, central_lang, output_dir, cookie_file
 from utils import print_error
-
+import pdb
+from whisper import load_model
 
 base_opts = {
     'skip_download': True,
@@ -127,30 +127,46 @@ def download_subtitle():
                 required_translation = True
             success = True
             break
+    if not success:
+        glo.job = "Downloading audio for transcription via Whisper"
+        print(Fore.GREEN + glo.job + Style.RESET_ALL)
+
+        en_audio_path = os.path.join(output_dir, glo.video_id, f"audio.{central_lang}.mp3")
+        central_sub_path = os.path.join(output_dir, glo.video_id, f"sub.{central_lang}.srt")
+
+        audio_ydl_opts = {
+            'format': 'bestaudio/best',
+            'outtmpl': en_audio_path,
+            'postprocessors': [{
+                'key': 'FFmpegExtractAudio',
+                'preferredcodec': 'mp3',
+                'preferredquality': '192',
+            }]
+        }
+        with YoutubeDL(audio_ydl_opts) as audio_ydl:
+            audio_ydl.download([glo.youtube_link])
+
+        model = load_model("base")  
+        # ERROR FileNotFoundError: [WinError 2] The system cannot find the file specified
+        result = model.transcribe(en_audio_path, language=central_lang)
+
+        with open(central_sub_path, 'w', encoding='utf-8') as f:
+            for i, seg in enumerate(result['segments'], 1):
+                start = seg['start']
+                end = seg['end']
+
+                def format_time(t):
+                    h = int(t // 3600)
+                    m = int((t % 3600) // 60)
+                    s = int(t % 60)
+                    ms = int((t - int(t)) * 1000)
+                    return f"{h:02}:{m:02}:{s:02},{ms:03}"
+
+                f.write(f"{i}\n")
+                f.write(f"{format_time(start)} --> {format_time(end)}\n")
+                f.write(seg['text'].strip() + "\n\n")
+        required_translation = (to_lang != central_lang)
     return required_translation
-
-    # if not success:
-    #     glo.job = "Downloading audio for transcription"
-    #     print(Fore.GREEN + glo.job + Style.RESET_ALL)
-    #     print(Fore.YELLOW + "WARNING: if the video is not in English, this will NOT work" + Style.RESET_ALL)
-        # audio_ydl_opts = {
-        #     'format': 'bestaudio/best',
-        #     'outtmpl': en_audio_path,
-        #     'postprocessors': [{
-        #         'key': 'FFmpegExtractAudio',
-        #         'preferredcodec': 'mp3',
-        #         'preferredquality': '192',
-        #     }]
-        # }
-        # with YoutubeDL(audio_ydl_opts) as audio_ydl:
-        #     audio_ydl.download([glo.youtube_link])
-        #
-        # # Transcribe
-        # model = whisper.load_model("base")
-        # result = model.transcribe(en_audio_path, language="en")
-        # with open(central_sub_path, 'w', encoding='utf-8') as f:
-        #     f.write(result['text'])
-
 
 def get_info():
     default_date = datetime.today().strftime("%Y%m%d")

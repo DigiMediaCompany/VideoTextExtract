@@ -7,10 +7,10 @@ load_dotenv()
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 OPEN_AI_CHARACTER_LIMIT = 2000
 rest_time = 10
-chrome_dir = r"\asset\chrome"
+chrome_dir = os.path.join(os.path.expanduser("~"), "asset", "chrome")
 # Youtube
 central_lang = "en"
-to_lang = "en"
+to_lang = "vi"
 cookie_file = "cookies.txt"
 # Common
 output_dir = "result"
@@ -39,4 +39,4 @@ headers = {
 }
 job_id_key = "CURRENT_JOB_ID"
 section_key = "Cloudflare"
-check_jobs_interval = 60
+check_jobs_interval = 5

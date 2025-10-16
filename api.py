@@ -1,12 +1,14 @@
+import pdb;
 import configparser
 import json
 import os
 from enum import Enum
 from time import sleep
-
+from video import combine_video
+from tts import text_to_speech
 import glo
 from config import D1_URL, headers, temp_file, job_id_key, section_key, check_jobs_interval, output_dir, central_lang, \
-    R2_URL
+    R2_URL, to_lang
 
 import requests
 
@@ -145,8 +147,68 @@ def handle_status_7(progress_item, job_data):
         return False
     except:
         return False
+def handle_status_9(progress_item, job_data):
+    try:
+        
+        detail = json.loads(job_data.get("detail"))
+        glo.required_translation= download_subtitle()
+        subtitle_file = os.path.join(output_dir, glo.video_id, f"sub.{central_lang}.srt")
+        if glo.required_translation:
+            gpt_translate(ProjectType.SUB)
+            subtitle_file = os.path.join(output_dir, glo.video_id, f"sub.{to_lang}.srt")
+        uploaded_file= upload_file(subtitle_file)
+        if uploaded_file:
+            detail["subtitle_file"] = uploaded_file
+            detail["required_translation"] = glo.required_translation
+            patch_job(job_data.get("id"), {
+                "detail": json.dumps(detail)
+            })
+            return True
+        return False
+    except:
+        return False
+def handle_status_11(progress_item, job_data):
+    try:
+        pdb.set_trace()
+        detail = json.loads(job_data.get("detail"))
+        glo.required_translation = detail.get("required_translation", False)
+        if glo.required_translation:
+            subtitle_file = os.path.join(output_dir, glo.video_id, f"sub.{to_lang}.srt")
+        else:
+            subtitle_file = os.path.join(output_dir, glo.video_id, f"sub.{central_lang}.srt")
 
-
+        os.makedirs(os.path.dirname(subtitle_file), exist_ok=True)
+        resp = requests.get(R2_URL+"/"+detail.get("subtitle_file"))
+        with open(subtitle_file, "w", encoding="utf-8") as f:
+            f.write(resp.text)
+        text_to_speech(subtitle_file)
+        audio_file = os.path.join(output_dir, glo.video_id, f"audio.{to_lang}.mp3")
+        uploaded_file = upload_file(audio_file)
+        if uploaded_file:
+            detail["audio_file"] = uploaded_file
+            patch_job(job_data.get("id"), {
+                "detail": json.dumps(detail)
+            })
+            return True
+        return False
+    except:
+        return False
+def handle_status_13(progress_item, job_data):
+    try:
+        detail = json.loads(job_data.get("detail"))
+        audio_file = os.path.join(output_dir, glo.video_id, f"audio.{to_lang}.mp3")
+        video_file = os.path.join(output_dir, glo.video_id, f"video.{VIDEO_FORMAT}")
+        combine_video()
+        uploaded_file = upload_file(video_file)
+        if uploaded_file:
+            detail["video_file"] = uploaded_file
+            patch_job(job_data.get("id"), {
+                "detail": json.dumps(detail)
+            })
+            return True
+        return False
+    except:
+        return False
 def patch_job(job_id, body):
     url = f"{D1_URL}/jobs/{job_id}"
     resp = requests.patch(url, headers=headers, json=body)
@@ -199,7 +261,7 @@ def process_and_advance(progress_list, index, handler_fn, job_data) -> bool:
 
 
 def handle_progress_in_job(job_data):
-    print(f"Processing job {job_data.get("id", "")}.")
+    print(f"Processing job {job_data.get('id', '')}.")
     progress_list = job_data.get("progress", [])
     detail = json.loads(job_data.get("detail"))
     glo.youtube_link = detail.get("link", None)
@@ -211,6 +273,9 @@ def handle_progress_in_job(job_data):
         3: handle_status_3,
         5: handle_status_5,
         7: handle_status_7,
+        9: handle_status_9,
+        11: handle_status_11,
+        13: handle_status_13
     }
 
     for i, current in enumerate(progress_list):
@@ -240,8 +305,10 @@ def handle_progress_in_job(job_data):
 
 
 def process_jobs():
-    job_id = glo.config.getint("job", job_id_key, fallback=1)
-
+    
+    # pdb.set_trace()
+    # job_id = glo.config.getint("job", job_id_key, fallback=1)
+    job_id=3
     while True:
         url = f"{D1_URL}/jobs/{job_id}?include=progress"
         resp = requests.get(url, headers=headers)
