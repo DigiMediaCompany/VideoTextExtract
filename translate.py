@@ -92,7 +92,7 @@ def translate_srt_via_api():
 
 def srt_to_txt():
     input_file = os.path.join(output_dir, glo.video_id, f"sub.{central_lang}.srt")
-    output_file = os.path.join(output_dir, glo.video_id, f"script.{to_lang}.txt")
+    output_file = os.path.join(output_dir, glo.video_id, f"script.{central_lang}.txt")
     if not os.path.exists(output_file) and os.path.exists(input_file):
         text = read_srt(input_file)
 

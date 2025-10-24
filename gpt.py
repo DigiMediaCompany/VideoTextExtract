@@ -1,7 +1,7 @@
 import os
 from enum import Enum
 from time import sleep
-
+import re
 import pyperclip
 from bs4 import BeautifulSoup
 from selenium.webdriver import Keys
@@ -25,6 +25,7 @@ class ProjectType(Enum):
     CONTEXT = "CONTEXT"
     ARTICLE = "ARTICLE"
     TITLE = "TITLE"
+    SUB = "SUB"
 
 def gpt_helper(func, *args, **kwargs):
     with SB(
@@ -50,13 +51,15 @@ def gpt_translate(type):
             url = "https://chatgpt.com/g/g-p-68ba062ba24c819189184d76fad578fc-context/project"
         elif type == ProjectType.ARTICLE:
             url = "https://chatgpt.com"
-        else:
+        elif type == ProjectType.TITLE:
             url = "https://chatgpt.com/g/g-p-68ba064304348191b64d09c1189bf17d-title/project"
+        elif type == ProjectType.SUB:
+            url = "https://chatgpt.com/"
         # Step 1: Ensure correct link
         sleep(random.uniform(3, 5))
         if sb.get_current_url() != url:
             sb.open(url)
-
+        
         # Step 2: Type into <p data-placeholder="New chat in Context">\
         if type == ProjectType.ARTICLE:
             sub_file = os.path.join(output_dir, glo.video_id, f"script.{central_lang}.txt")
@@ -87,6 +90,23 @@ def gpt_translate(type):
                         6. Instruction:
                         {glo.instruction}
                         """
+        elif type == ProjectType.SUB:
+            sub_file = os.path.join(output_dir, glo.video_id, f"sub.{central_lang}.srt")
+            srt_text = read_file(sub_file)
+            srt_text_clean = "\n".join(
+                line for line in srt_text.splitlines()
+                if not re.match(r"^\s*\[music\]\s*$", line, re.IGNORECASE)
+            )
+            message = f"""
+                You are a skilled subtitle translator.
+                Translate the following dialogue from {central_lang} to {to_lang},
+                ensuring natural, conversational phrasing while keeping timing and tone.
+                Do not explain anything — just return the translated text.
+
+
+                {srt_text_clean}
+                """
+
         else:
             message = ""
             sub = os.path.join(output_dir, glo.video_id, f"sub.{central_lang}.srt")
@@ -108,7 +128,7 @@ def gpt_translate(type):
         sb.click('#composer-submit-button')
 
         # Step 4: Get HTML content from target class
-        sleep(random.uniform(30, 60))
+        sleep(random.uniform(60, 90))
         sb.wait_for_element(
             '.markdown.prose.dark\\:prose-invert.w-full.break-words.dark.markdown-new-styling',
             timeout=15,
@@ -141,7 +161,7 @@ def gpt_translate(type):
                 formatted_lines.append("\n" + "-" * 40 + "\n")
 
         formatted_text = "".join(formatted_lines)
-
+        print(formatted_text)
         # Step 6: Save to file
         if type == ProjectType.ARTICLE:
             outfile = os.path.join(output_dir, glo.video_id, f"article.{central_lang}.txt")
@@ -149,6 +169,8 @@ def gpt_translate(type):
             outfile = os.path.join(output_dir, glo.video_id, f"context.{central_lang}.txt")
         elif type == ProjectType.TITLE:
             outfile = os.path.join(output_dir, glo.video_id, f"title.{central_lang}.txt")
+        elif type == ProjectType.SUB:
+            outfile = os.path.join(output_dir, glo.video_id, f"sub.{to_lang}.srt")
         else:
             raise Exception("I'm fucked")
 

@@ -5,11 +5,11 @@ from openai import OpenAI
 
 import glo
 from config import output_dir, to_lang, OPEN_AI_CHARACTER_LIMIT
+import pdb
 
-
-def text_to_speech():
+def text_to_speech(input_path=None, output_path=None):
     glo.job = "Turning text to speech"
-    input_path = os.path.join(output_dir, glo.video_id, f"script.{to_lang}.txt")
+    input_path = os.path.join(output_dir, glo.video_id, f"sub.{to_lang}.srt")
     output_path = os.path.join(output_dir, glo.video_id, f"audio.{to_lang}.mp3")
 
     if not os.path.exists(output_path):
