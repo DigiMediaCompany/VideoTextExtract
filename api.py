@@ -8,7 +8,7 @@ from video import combine_video
 from tts import text_to_speech
 import glo
 from config import D1_URL, headers, temp_file, job_id_key, section_key, check_jobs_interval, output_dir, central_lang, \
-    R2_URL, to_lang
+    R2_URL, to_lang,VIDEO_FORMAT
 
 import requests
 
@@ -183,9 +183,13 @@ def handle_status_11(progress_item, job_data):
             f.write(resp.text)
         text_to_speech(subtitle_file)
         audio_file = os.path.join(output_dir, glo.video_id, f"audio.{to_lang}.mp3")
-        uploaded_file = upload_file(audio_file)
-        if uploaded_file:
-            detail["audio_file"] = uploaded_file
+        uploaded_audio_file = upload_file(audio_file)
+        
+        uploaded_subtitle_file = upload_file(subtitle_file)
+        
+        if uploaded_audio_file and uploaded_subtitle_file:
+            detail["audio_file"] = uploaded_audio_file
+            detail["translated_subtitle_file"] = uploaded_subtitle_file
             patch_job(job_data.get("id"), {
                 "detail": json.dumps(detail)
             })
@@ -195,10 +199,31 @@ def handle_status_11(progress_item, job_data):
         return False
 def handle_status_13(progress_item, job_data):
     try:
+        pdb.set_trace()
         detail = json.loads(job_data.get("detail"))
+        
+        audio_filename = detail.get("audio_file")
+        subtitle_filename = detail.get("translated_subtitle_file")
+        
+        # if not audio_filename:
+        #     print("No audio file found in detail")
+        #     return False
+            
+        # if not subtitle_filename:
+        #     print("No translated subtitle file found in detail")
+        #     return False
+            
+        # Download audio file từ R2
         audio_file = os.path.join(output_dir, glo.video_id, f"audio.{to_lang}.mp3")
+        # download_file(audio_filename, audio_file)
+        
+        subtitle_file = os.path.join(output_dir, glo.video_id, f"sub.{to_lang}.srt")
+        # download_file(subtitle_filename, subtitle_file)
+        
         video_file = os.path.join(output_dir, glo.video_id, f"video.{VIDEO_FORMAT}")
+        
         combine_video()
+        
         uploaded_file = upload_file(video_file)
         if uploaded_file:
             detail["video_file"] = uploaded_file
@@ -304,29 +329,48 @@ def handle_progress_in_job(job_data):
                 break
 
 
-def process_jobs():
-    
-    # pdb.set_trace()
-    # job_id = glo.config.getint("job", job_id_key, fallback=1)
-    job_id=3
-    while True:
-        url = f"{D1_URL}/jobs/{job_id}?include=progress"
+def get_first_incomplete_job():
+    """Get the first incomplete job from the API"""
+    try:
+        # First try with status filter if supported
+        url = f"{D1_URL}/jobs?include=progress"
         resp = requests.get(url, headers=headers)
-
-        # TODO: handle errors/exceptions
+        
         if resp.status_code != 200:
-            print(f"Job {job_id} not found or error: {resp.status_code}")
-            sleep(check_jobs_interval)
-            job_id = glo.config.getint("job", job_id_key, fallback=1)
-            continue
+            print(f"Failed to fetch jobs: {resp.status_code}")
+            return None
+            
+        response_data = resp.json()
+        
+        # Extract jobs from the response data structure
+        if isinstance(response_data, dict) and "data" in response_data:
+            jobs = response_data["data"]
+        elif isinstance(response_data, list):
+            jobs = response_data
+        else:
+            print(f"Unexpected response format: {type(response_data)}")
+            return None
+        
+        # Find first incomplete job
+        for job in jobs:
+            if not is_processed(job):
+                return job
+                
+        return None
+    except Exception as e:
+        print(f"Error fetching incomplete jobs: {e}")
+        return None
 
-        job_data = resp.json()
 
-        if not is_processed(job_data):
+def process_jobs():
+    """Process jobs automatically by picking the first incomplete job"""
+    while True:
+        # Get the first incomplete job
+        job_data = get_first_incomplete_job()
+        
+        if job_data:
+            print(f"Found incomplete job {job_data.get('id')}")
             handle_progress_in_job(job_data)
         else:
-            config = configparser.ConfigParser()
-            config[section_key] = {job_id_key: str(job_id)}
-            with open(temp_file, "w") as f:
-                config.write(f)
-        job_id += 1
+            print("No incomplete jobs found, waiting...")
+            sleep(check_jobs_interval)
